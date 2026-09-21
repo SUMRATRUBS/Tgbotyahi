@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AdCash BD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <style>
+    body { background-color: #050814; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+    .neon-card { background: rgba(14, 23, 53, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(0, 242, 254, 0.18); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); }
+    .gradient-btn { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); }
+    .gradient-btn:active { transform: scale(0.97); }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body class="pb-20">
+
+  <!-- AUTH MODAL IF USER NOT REGISTERED -->
+  <div id="authScreen" class="fixed inset-0 z-50 bg-[#050814] flex flex-col justify-center items-center px-6 hidden">
+    <div class="neon-card p-6 rounded-3xl w-full max-w-sm text-center border border-cyan-500/30">
+      <div class="w-14 h-14 mx-auto mb-2 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-400">
+        <i class="fa-solid fa-user-plus text-2xl text-cyan-400"></i>
+      </div>
+      <h2 class="text-xl font-black text-cyan-400">AdCash BD</h2>
+      <p class="text-xs text-gray-400 mb-4">একটি অ্যাকাউন্ট খুলে আয় শুরু করুন</p>
+      <div class="space-y-3 text-left">
+        <input id="regName" type="text" placeholder="আপনার নাম" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+        <input id="regPass" type="password" placeholder="পাসওয়ার্ড" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+        <input id="regConfirmPass" type="password" placeholder="কনফার্ম পাসওয়ার্ড" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+        <button onclick="handleRegister()" class="w-full py-2.5 rounded-xl gradient-btn font-bold text-xs text-white">রেজিস্ট্রেশন সম্পন্ন করুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP HEADER -->
+  <header class="p-4 flex justify-between items-center border-b border-white/5">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-full bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-400">
+        <i class="fa-solid fa-user text-sm"></i>
+      </div>
+      <div>
+        <h3 id="topUserName" class="font-bold text-xs text-white">Loading...</h3>
+        <span id="userBadge" class="text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">Free Tier</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 bg-gray-900 border border-yellow-500/30 px-3 py-1 rounded-full">
+      <i class="fa-solid fa-bolt text-yellow-400 text-xs"></i>
+      <span class="text-[11px] font-bold text-yellow-300">স্পিন: ৳<span id="topSpinBal">0.00</span></span>
+    </div>
+  </header>
+
+  <!-- ================= TAB 1: HOME ================= -->
+  <main id="tabHome" class="p-4 space-y-4">
+    <!-- Balance Card -->
+    <div class="neon-card p-5 rounded-3xl relative overflow-hidden">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-[11px] text-cyan-300 font-medium">উপলব্ধ মূল ব্যালেন্স</p>
+          <h1 class="text-3xl font-black mt-1 text-white">৳ <span id="homeBalance">0.00</span></h1>
+        </div>
+        <div class="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300">
+          <i class="fa-solid fa-wallet"></i>
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-white/10 flex gap-2">
+        <button onclick="switchTab('tabWallet')" class="flex-1 py-2 text-xs font-bold rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">উইথড্র</button>
+        <button onclick="openDepositModal()" class="flex-1 py-2 text-xs font-bold rounded-xl gradient-btn text-white">স্পিন রিচার্জ</button>
+      </div>
+    </div>
+
+    <!-- Quick Action 4-Grid -->
+    <div class="grid grid-cols-4 gap-2">
+      <div onclick="switchTab('tabAds')" class="neon-card p-2.5 rounded-2xl flex flex-col items-center cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mb-1"><i class="fa-solid fa-play text-xs"></i></div>
+        <span class="text-[10px] font-bold">অ্যাড দেখুন</span>
+      </div>
+      <div onclick="switchTab('tabSpin')" class="neon-card p-2.5 rounded-2xl flex flex-col items-center cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 mb-1"><i class="fa-solid fa-dharmachakra text-xs"></i></div>
+        <span class="text-[10px] font-bold">লাকি স্পিন</span>
+      </div>
+      <div onclick="switchTab('tabSocial')" class="neon-card p-2.5 rounded-2xl flex flex-col items-center cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-1"><i class="fa-solid fa-cart-shopping text-xs"></i></div>
+        <span class="text-[10px] font-bold">আইডি সেল</span>
+      </div>
+      <div onclick="switchTab('tabReferral')" class="neon-card p-2.5 rounded-2xl flex flex-col items-center cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-pink-500/20 flex items-center justify-center text-pink-400 mb-1"><i class="fa-solid fa-users text-xs"></i></div>
+        <span class="text-[10px] font-bold">রেফারেল</span>
+      </div>
+    </div>
+
+    <!-- Sponsor Channels -->
+    <div class="space-y-2">
+      <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">স্পনসর চ্যানেল টাস্ক</h3>
+      <div id="sponsorTasksList" class="space-y-2">
+        <p class="text-xs text-gray-500">টাস্ক লোড হচ্ছে...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= TAB 2: WATCH ADS ================= -->
+  <section id="tabAds" class="p-4 space-y-4 hidden">
+    <div class="neon-card p-4 rounded-2xl flex justify-between items-center">
+      <div>
+        <p class="text-xs text-gray-400">আজকের বিজ্ঞাপন বাকি:</p>
+        <h3 class="text-lg font-bold text-cyan-300"><span id="adCountDisplay">0</span> / <span id="adLimitDisplay">0</span></h3>
+      </div>
+      <span id="adPlanTag" class="text-xs px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30">Free</span>
+    </div>
+
+    <!-- Monetag Container -->
+    <div class="neon-card p-6 rounded-2xl text-center space-y-3">
+      <i class="fa-solid fa-play-circle text-4xl text-cyan-400 animate-bounce"></i>
+      <h4 class="text-sm font-bold">বিজ্ঞাপন দেখে আয় করুন</h4>
+      <p class="text-xs text-gray-400">প্রতি বিজ্ঞাপনের জন্য পাবেন ৳<span id="adRateDisplay">2.50</span></p>
+      <button id="watchAdBtn" onclick="triggerMonetagAd()" class="w-full py-3 rounded-xl gradient-btn font-bold text-xs">অ্যাড দেখুন (Watch)</button>
+    </div>
+
+    <!-- Subscription Lock Box (Shows if Free limit exhausted) -->
+    <div id="vipPromoBox" class="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/40 text-center space-y-2 hidden">
+      <i class="fa-solid fa-crown text-2xl text-yellow-400"></i>
+      <h4 class="text-xs font-bold text-purple-300">ফ্রি অ্যাডের লিমিট শেষ!</h4>
+      <p class="text-[11px] text-gray-300">দৈনিক ২০টি করে অ্যাড দেখতে VIP সাবস্ক্রিপশন নিন।</p>
+      <button onclick="contactAdmin('VIP Subscription Inquiry')" class="px-4 py-2 rounded-xl bg-purple-600 font-bold text-xs">ভিআইপি এক্টিভ করুন</button>
+    </div>
+  </section>
+
+  <!-- ================= TAB 3: LUCKY SPIN (CANVAS WHEEL) ================= -->
+  <section id="tabSpin" class="p-4 space-y-4 hidden text-center">
+    <div class="neon-card p-3 rounded-2xl">
+      <h3 class="text-sm font-bold text-cyan-400">লাকি স্পিন গেম</h3>
+      <p class="text-[10px] text-gray-400">স্পিন ব্যালেন্স: <b class="text-yellow-400 font-bold">৳<span id="spinBalDisplay">0.00</span></b></p>
+    </div>
+
+    <!-- Canvas Wheel Container -->
+    <div class="relative w-[280px] h-[280px] mx-auto flex items-center justify-center">
+      <canvas id="wheelCanvas" width="280" height="280" class="rounded-full shadow-[0_0_25px_rgba(0,242,254,0.3)]"></canvas>
+      <!-- Top Center Pointer -->
+      <div class="absolute -top-1 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[22px] border-t-yellow-400 z-10"></div>
+    </div>
+
+    <div class="space-y-3 max-w-sm mx-auto">
+      <select id="spinFeeSelect" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs font-bold text-cyan-300 outline-none">
+        <option value="5">৫ টাকা প্রতি স্পিন</option>
+        <option value="10">১০ টাকা প্রতি স্পিন</option>
+        <option value="20">২০ টাকা প্রতি স্পিন</option>
+      </select>
+      <button id="spinBtn" onclick="spinWheel()" class="w-full py-3 rounded-xl gradient-btn font-black text-xs tracking-wider">ঘোরান (Spin Now)</button>
+      <button onclick="openDepositModal()" class="w-full py-2 rounded-xl bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-xs font-bold">
+        + ডিপোজিট / স্পিন ব্যালেন্স রিচার্জ
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= TAB 4: SOCIAL ACCOUNTS SELL (GMAIL, FB, IG) ================= -->
+  <section id="tabSocial" class="p-4 space-y-4 hidden">
+    <div class="neon-card p-4 rounded-2xl">
+      <h3 class="text-sm font-bold text-emerald-400">অ্যাকাউন্ট সেল মার্কেট</h3>
+      <p class="text-xs text-gray-400">নিচের অ্যাকাউন্ট সাবমিট করুন। অ্যাডমিন রিভিউ করে টাকা যোগ করে দিবে।</p>
+    </div>
+
+    <!-- 3 Options -->
+    <div class="grid grid-cols-3 gap-2">
+      <div onclick="openSellModal('Gmail')" class="neon-card p-3 rounded-2xl text-center cursor-pointer hover:border-emerald-400">
+        <i class="fa-solid fa-envelope text-red-400 text-xl mb-1"></i>
+        <div class="text-xs font-bold">Gmail</div>
+        <div class="text-[10px] text-emerald-300 font-bold mt-1">৳<span id="rateGmail">80</span></div>
+      </div>
+      <div onclick="openSellModal('Facebook')" class="neon-card p-3 rounded-2xl text-center cursor-pointer hover:border-blue-400">
+        <i class="fa-brands fa-facebook text-blue-400 text-xl mb-1"></i>
+        <div class="text-xs font-bold">Facebook</div>
+        <div class="text-[10px] text-blue-300 font-bold mt-1">৳<span id="rateFb">50</span></div>
+      </div>
+      <div onclick="openSellModal('Instagram')" class="neon-card p-3 rounded-2xl text-center cursor-pointer hover:border-pink-400">
+        <i class="fa-brands fa-instagram text-pink-400 text-xl mb-1"></i>
+        <div class="text-xs font-bold">Instagram</div>
+        <div class="text-[10px] text-pink-300 font-bold mt-1">৳<span id="rateIg">40</span></div>
+      </div>
+    </div>
+
+    <div class="neon-card p-4 rounded-2xl text-center">
+      <p class="text-xs text-gray-300">যেকোনো প্রশ্ন বা সরাসরি সেল করতে অ্যাডমিনের সাথে কথা বলুন</p>
+      <button onclick="contactAdmin('Account Sell Help')" class="mt-2 px-4 py-2 rounded-xl bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-bold">
+        <i class="fa-brands fa-telegram mr-1"></i> মেসেজ অ্যাডমিন
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= TAB 5: REFERRAL ================= -->
+  <section id="tabReferral" class="p-4 space-y-4 hidden">
+    <div class="neon-card p-5 rounded-3xl text-center space-y-3">
+      <div class="w-12 h-12 rounded-full bg-cyan-500/20 border border-cyan-400 mx-auto flex items-center justify-center text-cyan-400 text-xl">
+        <i class="fa-solid fa-gift"></i>
+      </div>
+      <h3 class="text-sm font-bold">বন্ধুদের ইনভাইট করে আয় করুন</h3>
+      <p class="text-xs text-gray-400">আপনার ফ্রেন্ড যখন কাজ করবে আপনি তার থেকে কমিশন পাবেন!</p>
+
+      <!-- Referral Link Box -->
+      <div class="p-2.5 rounded-xl bg-gray-900 border border-cyan-500/40 flex items-center justify-between text-xs">
+        <span id="refLinkText" class="truncate text-cyan-300 pr-2">তৈরি হচ্ছে...</span>
+        <button onclick="copyRefLink()" class="px-3 py-1 rounded-lg bg-cyan-600 font-bold text-white whitespace-nowrap">Copy</button>
+      </div>
+
+      <button onclick="shareOnTelegram()" class="w-full py-2.5 rounded-xl gradient-btn font-bold text-xs">
+        <i class="fa-brands fa-telegram mr-1"></i> টেলিগ্রামে শেয়ার করুন
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= TAB 6: WALLET & WITHDRAW ================= -->
+  <section id="tabWallet" class="p-4 space-y-4 hidden">
+    <div class="neon-card p-4 rounded-2xl">
+      <p class="text-xs text-gray-400">উইথড্রল ব্যালেন্স</p>
+      <h2 class="text-2xl font-black text-cyan-400 mt-0.5">৳ <span id="walletBal">0.00</span></h2>
+      <p class="text-[10px] text-gray-500 mt-1">মিনিমাম উইথড্র ৳<span id="minWithdrawDisplay">50</span></p>
+    </div>
+
+    <div class="neon-card p-4 rounded-2xl space-y-3">
+      <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+        <label class="p-2.5 rounded-xl bg-gray-900 border border-gray-700 flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="wMethod" value="bKash" checked /> <span class="text-pink-400">bKash</span>
+        </label>
+        <label class="p-2.5 rounded-xl bg-gray-900 border border-gray-700 flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="wMethod" value="Nagad" /> <span class="text-orange-400">Nagad</span>
+        </label>
+      </div>
+      <input id="wNumber" type="text" placeholder="বিকাশ/নগদ নাম্বার" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+      <input id="wAmount" type="number" placeholder="উইথড্রল অ্যামাউন্ট" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+      <button onclick="handleWithdrawSubmit()" class="w-full py-2.5 rounded-xl gradient-btn font-bold text-xs">উইথড্র রিকোয়েস্ট পাঠান</button>
+    </div>
+  </section>
+
+  <!-- ================= MODAL: SELL MODAL (GMAIL / FB / IG) ================= -->
+  <div id="sellModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+    <div class="neon-card p-5 rounded-3xl w-full max-w-sm border border-cyan-500/40 space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 id="sellModalTitle" class="text-sm font-bold text-cyan-400">অ্যাকাউন্ট সেল</h3>
+        <button onclick="closeModal('sellModal')" class="text-gray-400 text-lg">&times;</button>
+      </div>
+      <div class="text-[11px] text-gray-300 bg-gray-900/60 p-2.5 rounded-xl border border-gray-700">
+        অ্যাকাউন্ট সাবমিট করার পর অ্যাডমিন চেক করে আপনার ব্যালেন্সে টাকা যুক্ত করে দিবে।
+      </div>
+      <input id="sellAccountInput" type="text" placeholder="ইমেইল / ইউজারনেম / ফোন" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+      <input id="sellPasswordInput" type="text" placeholder="পাসওয়ার্ড" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+      <input id="sellExtraInput" type="text" placeholder="2FA কোড / রিকভারি মেইল (যদি থাকে)" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+      <button onclick="submitSocialAccount()" class="w-full py-2.5 rounded-xl gradient-btn font-bold text-xs text-white">সাবমিট করুন</button>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: SPIN DEPOSIT ================= -->
+  <div id="depositModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+    <div class="neon-card p-5 rounded-3xl w-full max-w-sm border border-yellow-500/40 space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 class="text-sm font-bold text-yellow-400">স্পিন ব্যালেন্স রিচার্জ</h3>
+        <button onclick="closeModal('depositModal')" class="text-gray-400 text-lg">&times;</button>
+      </div>
+      <div class="text-[11px] text-gray-300 bg-yellow-950/40 p-2.5 rounded-xl border border-yellow-600/30">
+        বিকাশ/নগদ Send Money করুন:<br>
+        <b class="text-white text-xs font-mono" id="depAdminNumber">017XXXXXXXX</b><br>
+        টাকা পাঠিয়ে নিচে TrxID সাবমিট করুন।
+      </div>
+      <input id="depAmount" type="number" placeholder="টাকার পরিমাণ (যেমন: ৫০)" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+      <input id="depTrxId" type="text" placeholder="TrxID (ট্রানজেকশন আইডি)" class="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 text-xs outline-none" />
+      <button onclick="submitSpinDeposit()" class="w-full py-2.5 rounded-xl bg-yellow-500 font-bold text-xs text-black">ডিপোজিট রিকোয়েস্ট পাঠান</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVBAR (5 TABS) -->
+  <nav class="fixed bottom-0 left-0 right-0 h-16 bg-[#070b1b]/95 backdrop-blur-md border-t border-cyan-500/20 flex justify-around items-center px-2 z-40">
+    <button onclick="switchTab('tabHome')" id="nav-tabHome" class="flex flex-col items-center text-cyan-400">
+      <i class="fa-solid fa-house text-sm"></i>
+      <span class="text-[10px] mt-0.5 font-bold">Home</span>
+    </button>
+    <button onclick="switchTab('tabAds')" id="nav-tabAds" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-play text-sm"></i>
+      <span class="text-[10px] mt-0.5">Ads</span>
+    </button>
+    <button onclick="switchTab('tabSpin')" id="nav-tabSpin" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-dharmachakra text-sm"></i>
+      <span class="text-[10px] mt-0.5">Spin</span>
+    </button>
+    <button onclick="switchTab('tabSocial')" id="nav-tabSocial" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-cart-shopping text-sm"></i>
+      <span class="text-[10px] mt-0.5">Sell</span>
+    </button>
+    <button onclick="switchTab('tabReferral')" id="nav-tabReferral" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-users text-sm"></i>
+      <span class="text-[10px] mt-0.5">Refer</span>
+    </button>
+    <button onclick="switchTab('tabWallet')" id="nav-tabWallet" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-wallet text-sm"></i>
+      <span class="text-[10px] mt-0.5">Wallet</span>
+    </button>
+  </nav>
+
+  <!-- FIREBASE & CORE ENGINE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    // 🔴 আপনার ফায়ারবেস কনফিগারেশন বসান
+    const firebaseConfig = {
+  apiKey: "AIzaSyAJi9UcEy-G8pv4gZw3j5PjdVzbtW9MPwk",
+  authDomain: "client-91234.firebaseapp.com",
+  projectId: "client-91234",
+  storageBucket: "client-91234.firebasestorage.app",
+  messagingSenderId: "347177227064",
+  appId: "1:347177227064:web:d1216ad9b26f65766ee7cd"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.expand(); }
+    const tgUser = tg?.initDataUnsafe?.user || { id: "demo_12345", first_name: "Demo User" };
+    const botUsername = "YourBotUsername"; // 🔴 আপনার বটের ইউজারনেম (@ ছাড়া)
+
+    let currentUser = null;
+    let config = {
+      monetag_id: "", free_ads: 2, vip_ads: 20, ad_rate: 2.5,
+      spin_win_rate: 0.2, deposit_number: "017XXXXXXXX",
+      gmail_rate: 80, fb_rate: 50, ig_rate: 40, admin_tg: "AdminUser", min_withdraw: 50
+    };
+
+    // Listen to App Config
+    onSnapshot(doc(db, "app_config", "settings"), (docSnap) => {
+      if(docSnap.exists()) {
+        config = { ...config, ...docSnap.data() };
+        document.getElementById("adRateDisplay").innerText = config.ad_rate;
+        document.getElementById("rateGmail").innerText = config.gmail_rate;
+        document.getElementById("rateFb").innerText = config.fb_rate;
+        document.getElementById("rateIg").innerText = config.ig_rate;
+        document.getElementById("depAdminNumber").innerText = config.deposit_number;
+        document.getElementById("minWithdrawDisplay").innerText = config.min_withdraw;
+        if(currentUser) updateUI();
+      }
+    });
+
+    // Check & Listen User
+    async function init() {
+      const uRef = doc(db, "users", String(tgUser.id));
+      const snap = await getDoc(uRef);
+      if(!snap.exists()) {
+        document.getElementById("authScreen").classList.remove("hidden");
+      } else {
+        currentUser = snap.data();
+        listenUser();
+      }
+      setupReferral();
+      drawWheel();
+      loadTasks();
+    }
+
+    function listenUser() {
+      onSnapshot(doc(db, "users", String(tgUser.id)), (snap) => {
+        if(snap.exists()) {
+          currentUser = snap.data();
+          updateUI();
+        }
+      });
+    }
+
+    function updateUI() {
+      document.getElementById("topUserName").innerText = currentUser.name;
+      document.getElementById("topSpinBal").innerText = (currentUser.spin_balance || 0).toFixed(2);
+      document.getElementById("homeBalance").innerText = (currentUser.balance || 0).toFixed(2);
+      document.getElementById("walletBal").innerText = (currentUser.balance || 0).toFixed(2);
+      document.getElementById("spinBalDisplay").innerText = (currentUser.spin_balance || 0).toFixed(2);
+
+      const limit = currentUser.is_vip ? config.vip_ads : config.free_ads;
+      const watched = currentUser.ads_today || 0;
+      document.getElementById("adCountDisplay").innerText = watched;
+      document.getElementById("adLimitDisplay").innerText = limit;
+      document.getElementById("adPlanTag").innerText = currentUser.is_vip ? "VIP Member" : "Free Tier";
+      document.getElementById("userBadge").innerText = currentUser.is_vip ? "VIP Member" : "Free Tier";
+
+      // Show VIP Promo if free user finished daily ads
+      if(!currentUser.is_vip && watched >= limit) {
+        document.getElementById("vipPromoBox").classList.remove("hidden");
+        document.getElementById("watchAdBtn").disabled = true;
+        document.getElementById("watchAdBtn").classList.add("opacity-50");
+      } else {
+        document.getElementById("vipPromoBox").classList.add("hidden");
+        document.getElementById("watchAdBtn").disabled = false;
+        document.getElementById("watchAdBtn").classList.remove("opacity-50");
+      }
+    }
+
+    // Register
+    window.handleRegister = async () => {
+      const name = document.getElementById("regName").value.trim();
+      const pass = document.getElementById("regPass").value;
+      const cpass = document.getElementById("regConfirmPass").value;
+      if(!name || !pass) return alert("সব তথ্য দিন!");
+      if(pass !== cpass) return alert("পাসওয়ার্ড মেলেনি!");
+
+      const newUser = {
+        telegram_id: String(tgUser.id),
+        name, password: pass, balance: 0, spin_balance: 0,
+        is_vip: false, ads_today: 0, created_at: new Date()
+      };
+      await setDoc(doc(db, "users", String(tgUser.id)), newUser);
+      document.getElementById("authScreen").classList.add("hidden");
+      listenUser();
+    };
+
+    // Referral System
+    function setupReferral() {
+      const refUrl = `https://t.me/${botUsername}?start=${tgUser.id}`;
+      document.getElementById("refLinkText").innerText = refUrl;
+    }
+
+    window.copyRefLink = () => {
+      const refUrl = `https://t.me/${botUsername}?start=${tgUser.id}`;
+      navigator.clipboard.writeText(refUrl);
+      alert("✅ রেফারেল লিংক কপি হয়েছে!");
+    };
+
+    window.shareOnTelegram = () => {
+      const refUrl = `https://t.me/${botUsername}?start=${tgUser.id}`;
+      const text = encodeURIComponent(`🔥 AdCash BD-তে বিজ্ঞাপন দেখে ও স্পিন খেলে প্রতিদিন টাকা আয় করুন! জয়েন করুন এখনই: \n${refUrl}`);
+      window.open(`https://t.me/share/url?url=${refUrl}&text=${text}`, '_blank');
+    };
+
+    // ================= REALISTIC CANVAS WHEEL =================
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+    const segments = [
+      { text: "৳১০", color: "#10B981", isWin: true, val: 10 },
+      { text: "❌ Loss", color: "#EF4444", isWin: false, val: 0 },
+      { text: "৳২০", color: "#3B82F6", isWin: true, val: 20 },
+      { text: "❌ Loss", color: "#DC2626", isWin: false, val: 0 },
+      { text: "৳১৫", color: "#F59E0B", isWin: true, val: 15 },
+      { text: "❌ Loss", color: "#B91C1C", isWin: false, val: 0 },
+      { text: "৳৫০", color: "#8B5CF6", isWin: true, val: 50 },
+      { text: "❌ Loss", color: "#991B1B", isWin: false, val: 0 }
+    ];
+    let currentAngle = 0;
+    let isSpinning = false;
+
+    function drawWheel() {
+      const numSegments = segments.length;
+      const arcSize = (2 * Math.PI) / numSegments;
+      ctx.clearRect(0, 0, 280, 280);
+
+      segments.forEach((seg, i) => {
+        const angle = currentAngle + i * arcSize;
+        ctx.beginPath();
+        ctx.fillStyle = seg.color;
+        ctx.moveTo(140, 140);
+        ctx.arc(140, 140, 130, angle, angle + arcSize);
+        ctx.lineTo(140, 140);
+        ctx.fill();
+        ctx.stroke();
+
+        // Text
+        ctx.save();
+        ctx.translate(140, 140);
+        ctx.rotate(angle + arcSize / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 13px sans-serif";
+        ctx.fillText(seg.text, 115, 5);
+        ctx.restore();
+      });
+
+      // Center Pin
+      ctx.beginPath();
+      ctx.arc(140, 140, 20, 0, 2 * Math.PI);
+      ctx.fillStyle = "#0F172A";
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#00F2FE";
+      ctx.stroke();
+    }
+
+    window.spinWheel = async () => {
+      if(isSpinning) return;
+      const fee = parseInt(document.getElementById("spinFeeSelect").value);
+      if(!currentUser.spin_balance || currentUser.spin_balance < fee) {
+        alert("আপনার পর্যাপ্ত স্পিন ব্যালেন্স নেই! আগে ডিপোজিট করুন।");
+        openDepositModal();
+        return;
+      }
+
+      // Deduct fee immediately
+      isSpinning = true;
+      const uRef = doc(db, "users", String(tgUser.id));
+      await updateDoc(uRef, { spin_balance: currentUser.spin_balance - fee });
+
+      // Determine outcome based on admin win-rate
+      const isWin = Math.random() < config.spin_win_rate;
+      let targetIndex;
+      if (isWin) {
+        const winIndices = [0, 2, 4, 6];
+        targetIndex = winIndices[Math.floor(Math.random() * winIndices.length)];
+      } else {
+        const lossIndices = [1, 3, 5, 7];
+        targetIndex = lossIndices[Math.floor(Math.random() * lossIndices.length)];
+      }
+
+      const arcSize = (2 * Math.PI) / segments.length;
+      // Calculate target angle to align with top pointer (3*PI/2)
+      const targetAngle = (3 * Math.PI / 2) - (targetIndex * arcSize + arcSize / 2);
+      const totalRotation = targetAngle + (Math.PI * 2 * 6); // 6 full rotations
+
+      const startTime = performance.now();
+      const duration = 4500; // 4.5 seconds realistic spin
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease-out cubic formula
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        currentAngle = easeOut * totalRotation;
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          const result = segments[targetIndex];
+          if(result.isWin) {
+            alert(`🎉 অভিনন্দন! আপনি ৳${result.val} জিতেছেন!`);
+            updateDoc(uRef, { balance: currentUser.balance + result.val });
+          } else {
+            alert("❌ দুঃখিত, ক্রস পড়েছে (Loss)! আবার চেষ্টা করুন।");
+          }
+        }
+      }
+      requestAnimationFrame(animate);
+    };
+
+    // ================= MONETAG AD HANDLER =================
+    window.triggerMonetagAd = async () => {
+      const limit = currentUser.is_vip ? config.vip_ads : config.free_ads;
+      if(currentUser.ads_today >= limit) {
+        alert("আজকের অ্যাড লিমিট শেষ!");
+        return;
+      }
+
+      // If Monetag In-page or Direct Tag is configured
+      if(config.monetag_id) {
+        const script = document.createElement("script");
+        script.src = `//alwingulla.com/${config.monetag_id}`;
+        document.body.appendChild(script);
+      }
+
+      // Ad Simulation with reward callback
+      alert("বিজ্ঞাপন ওপেন হচ্ছে, সম্পূর্ণ দেখুন...");
+      setTimeout(async () => {
+        const uRef = doc(db, "users", String(tgUser.id));
+        await updateDoc(uRef, {
+          balance: (currentUser.balance || 0) + config.ad_rate,
+          ads_today: (currentUser.ads_today || 0) + 1
+        });
+        alert(`✅ বিজ্ঞাপন দেখা সম্পন্ন! ৳${config.ad_rate} যোগ হয়েছে।`);
+      }, 3000);
+    };
+
+    // ================= SOCIAL SELL =================
+    let currentSellCategory = "Gmail";
+    window.openSellModal = (cat) => {
+      currentSellCategory = cat;
+      document.getElementById("sellModalTitle").innerText = `${cat} সেল সাবমিশন`;
+      document.getElementById("sellModal").classList.remove("hidden");
+    };
+
+    window.submitSocialAccount = async () => {
+      const acc = document.getElementById("sellAccountInput").value.trim();
+      const pass = document.getElementById("sellPasswordInput").value.trim();
+      const extra = document.getElementById("sellExtraInput").value.trim();
+      if(!acc || !pass) return alert("তথ্য পূরণ করুন!");
+
+      await addDoc(collection(db, "social_submissions"), {
+        category: currentSellCategory,
+        user_id: tgUser.id,
+        user_name: currentUser.name,
+        account: acc,
+        password: pass,
+        extra: extra,
+        status: "Pending",
+        created_at: new Date()
+      });
+
+      alert("✅ সাবমিট হয়েছে! অ্যাডমিন চেক করে টাকা ব্যালেন্সে দিয়ে দিবে।");
+      closeModal("sellModal");
+      document.getElementById("sellAccountInput").value = "";
+      document.getElementById("sellPasswordInput").value = "";
+      document.getElementById("sellExtraInput").value = "";
+    };
+
+    // ================= SPIN DEPOSIT =================
+    window.submitSpinDeposit = async () => {
+      const amt = parseFloat(document.getElementById("depAmount").value);
+      const trx = document.getElementById("depTrxId").value.trim();
+      if(!amt || !trx) return alert("সব তথ্য দিন!");
+
+      await addDoc(collection(db, "spin_deposits"), {
+        user_id: tgUser.id,
+        user_name: currentUser.name,
+        amount: amt,
+        trx_id: trx,
+        status: "Pending",
+        created_at: new Date()
+      });
+
+      alert("✅ ডিপোজিট রিকোয়েস্ট সফল হয়েছে! অ্যাডমিন অ্যাপ্রুভ করলে স্পিন ব্যালেন্সে টাকা যোগ হবে।");
+      closeModal("depositModal");
+      document.getElementById("depAmount").value = "";
+      document.getElementById("depTrxId").value = "";
+    };
+
+    // ================= WITHDRAW SUBMISSION =================
+    window.handleWithdrawSubmit = async () => {
+      const method = document.querySelector('input[name="wMethod"]:checked').value;
+      const num = document.getElementById("wNumber").value.trim();
+      const amt = parseFloat(document.getElementById("wAmount").value);
+
+      if(!num || !amt) return alert("সব তথ্য পূরণ করুন!");
+      if(amt < config.min_withdraw) return alert(`মিনিমাম উইথড্র ৳${config.min_withdraw}!`);
+      if(amt > currentUser.balance) return alert("পর্যাপ্ত ব্যালেন্স নেই!");
+
+      const uRef = doc(db, "users", String(tgUser.id));
+      await updateDoc(uRef, { balance: currentUser.balance - amt });
+
+      await addDoc(collection(db, "withdraws"), {
+        user_id: tgUser.id,
+        user_name: currentUser.name,
+        method, number: num, amount: amt,
+        status: "Pending", created_at: new Date()
+      });
+
+      alert("✅ উইথড্রল রিকোয়েস্ট সফল হয়েছে!");
+      document.getElementById("wNumber").value = "";
+      document.getElementById("wAmount").value = "";
+    };
+
+    // Load Sponsor Tasks
+    function loadTasks() {
+      onSnapshot(collection(db, "sponsor_tasks"), (snap) => {
+        const list = document.getElementById("sponsorTasksList");
+        list.innerHTML = "";
+        snap.forEach(d => {
+          const t = d.data();
+          list.innerHTML += `
+            <div class="neon-card p-3 rounded-2xl flex justify-between items-center text-xs">
+              <div>
+                <h4 class="font-bold">${t.title}</h4>
+                <span class="text-cyan-400 font-bold">+৳${t.reward}</span>
+              </div>
+              <a href="${t.link}" target="_blank" class="px-3 py-1.5 rounded-xl gradient-btn font-bold text-white">Join</a>
+            </div>
+          `;
+        });
+      });
+    }
+
+    window.contactAdmin = (msg) => {
+      window.open(`https://t.me/${config.admin_tg}?text=${encodeURIComponent(msg)}`, '_blank');
+    };
+
+    init();
+  </script>
+
+  <!-- TAB SWITCHING -->
+  <script>
+    function switchTab(id) {
+      ['tabHome', 'tabAds', 'tabSpin', 'tabSocial', 'tabReferral', 'tabWallet'].forEach(t => {
+        document.getElementById(t).classList.add('hidden');
+        const nav = document.getElementById('nav-' + t);
+        if(nav) { nav.classList.remove('text-cyan-400'); nav.classList.add('text-gray-400'); }
+      });
+      document.getElementById(id).classList.remove('hidden');
+      const activeNav = document.getElementById('nav-' + id);
+      if(activeNav) { activeNav.classList.add('text-cyan-400'); activeNav.classList.remove('text-gray-400'); }
+    }
+    function openDepositModal() { document.getElementById('depositModal').classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  </script>
+</body>
+</html>
